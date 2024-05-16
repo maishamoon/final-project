@@ -1,0 +1,248 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#define MAX_STUDENTS 1000
+#define MAX_NAME_LENGTH 50
+#define MAX_GRP_LENGTH 50
+#define MAX_FACULTY 100
+#define MAX_COURSES 100
+#define MAX_SYLLABUS_LENGTH 500
+typedef struct {
+ int id;
+ char name[50];
+ char password[50];
+ char dob[20]; 
+} Student;
+typedef struct {
+ char name[MAX_NAME_LENGTH];
+ int age;
+} FacultyMember;
+typedef struct {
+ char name[MAX_GRP_LENGTH];
+ FacultyMember faculty[MAX_FACULTY];
+ int num_faculty;
+} Group;
+typedef struct {
+ char code[20];
+ char name[50];
+ char instructor[50];
+ char syllabus[MAX_SYLLABUS_LENGTH];
+} Course;
+Student students[MAX_STUDENTS];
+int numStudents = 0;
+Group groups[3];
+int num_groups = 3;
+Course courses[MAX_COURSES];
+int numCourses = 0;
+void studentRegistration();
+void studentLogin();
+int isPasswordCorrect(const char *inputPassword, const char *storedPassword);
+void manageGroups();
+void printGroupFaculty(Group grp);
+void addCourse();
+void viewCourseDetails();
+void viewSyllabus();
+void studentLoginSystem(Student students[], int num_students);
+void facultyLoginSystem(FacultyMember faculty[], int num_faculty);
+int main() {
+ int choice;
+ while(1) {
+ printf("\n\nCollege Management System\n");
+ printf("1. Student Registration\n");
+ printf("2. Student Login\n");
+ printf("3. Manage Groups and Faculty\n");
+ printf("4. Course Management\n");
+ printf("5. Exit\n");
+ printf("Enter your choice: ");
+ scanf("%d", &choice);
+ switch(choice) {
+ case 1:
+ studentRegistration();
+ break;
+ case 2:
+ studentLogin();
+ break;
+ case 3:
+ manageGroups();
+ break;
+ case 4: {
+ int courseChoice;
+ printf("\nCourse Management System\n");
+ printf("1. Add Course\n");
+ printf("2. View Course Details\n");
+ printf("3. View Syllabus\n");
+ printf("Enter your choice: ");
+ scanf("%d", &courseChoice);
+ switch (courseChoice) {
+ case 1:
+ addCourse();
+ break;
+ case 2:
+ viewCourseDetails();
+ break;
+ case 3:
+ viewSyllabus();
+ break;
+ default:
+ printf("Invalid choice. Please try again.\n");
+ }
+ break;
+ }
+ case 5:
+ printf("Exiting program...\n");
+ exit(0);
+ default:
+ printf("Invalid choice. Please try again.\n");
+ }
+ }
+ return 0;
+}
+void studentRegistration() {
+ Student newStudent;
+ printf("\nStudent Registration\n");
+ printf("Enter student ID: ");
+ scanf("%d", &newStudent.id);
+ printf("Enter student name: ");
+ scanf("%s", newStudent.name);
+ printf("Enter password: ");
+ scanf("%s", newStudent.password);
+ printf("Enter date of birth (DD/MM/YYYY): ");
+ scanf("%s", newStudent.dob);
+ students[numStudents++] = newStudent;
+ printf("Student registered successfully.\n");
+}
+int isPasswordCorrect(const char *inputPassword, const char *storedPassword) {
+ return strcmp(inputPassword, storedPassword) == 0;
+}
+void studentLogin() {
+ int id;
+ char password[50];
+ int found = 0;
+ printf("\nStudent Login\n");
+ printf("Enter student ID: ");
+ scanf("%d", &id);
+ printf("Enter password: ");
+ scanf("%s", password);
+ for (int i = 0; i < numStudents; i++) {
+ if (students[i].id == id) {
+ if (isPasswordCorrect(password, students[i].password)) {
+ printf("Login successful! Welcome, %s!\n", students[i].name);
+ found = 1;
+ break;
+ } else {
+ printf("Incorrect password. Please try again.\n");
+ return;
+ }
+ }
+ }
+ if (!found) {
+ printf("Student with ID %d not found.\n", id);
+ }
+}
+void manageGroups() {
+ printf("Enter Three Group Names Here\n");
+ for (int i = 0; i < num_groups; i++) {
+ printf("Enter group name: ");
+ scanf("%s", groups[i].name);
+ groups[i].num_faculty = 0;
+ }
+ for (int i = 0; i < num_groups; i++) {
+ printf("Enter the number of faculty members for group %s: ", groups[i].name);
+ scanf("%d", &groups[i].num_faculty);
+ printf("Enter details for faculty members of group %s:\n", groups[i].name);
+ for (int j = 0; j < groups[i].num_faculty; j++) {
+ printf("Name: ");
+ scanf("%s", groups[i].faculty[j].name);
+ printf("Age: ");
+ scanf("%d", &groups[i].faculty[j].age);
+ }
+ }
+ for (int i = 0; i < num_groups; i++) {
+ printf("\n");
+ printGroupFaculty(groups[i]);
+ }
+}
+void printGroupFaculty(Group grp) {
+ printf("Group: %s\n", grp.name);
+ printf("Faculty Profile:\n");
+ for (int i = 0; i < grp.num_faculty; i++) {
+ printf("Name: %s\n", grp.faculty[i].name);
+ printf("Age: %d\n", grp.faculty[i].age);
+ printf("\n");
+ }
+}
+void addCourse() {
+ if (numCourses >= MAX_COURSES) {
+ printf("Cannot add more courses. Maximum limit reached.\n");
+ return;
+ }
+ Course newCourse;
+ printf("Enter course code: ");
+ scanf("%s", newCourse.code);
+ printf("Enter course name: ");
+ scanf("%s", newCourse.name);
+ printf("Enter instructor name: ");
+ scanf("%s", newCourse.instructor);
+ printf("Enter syllabus (max %d characters): ", MAX_SYLLABUS_LENGTH);
+ getchar(); 
+ fgets(newCourse.syllabus, MAX_SYLLABUS_LENGTH, stdin);
+ courses[numCourses++] = newCourse;
+ printf("Course added successfully.\n");
+}
+void viewCourseDetails() {
+ if (numCourses == 0) {
+ printf("No courses available.\n");
+ return;
+ }
+ printf("Course Details:\n");
+ for (int i = 0; i < numCourses; i++) {
+ printf("Course %d:\n", i + 1);
+ printf("Code: %s\n", courses[i].code);
+ printf("Name: %s\n", courses[i].name);
+ printf("Instructor: %s\n", courses[i].instructor);
+ printf("Syllabus: %s\n", courses[i].syllabus);
+ printf("\n");
+ }
+}
+void viewSyllabus() {
+ char code[20];
+ printf("Enter course code to view syllabus: ");
+ scanf("%s", code);
+ for (int i = 0; i < numCourses; i++) {
+ if (strcmp(courses[i].code, code) == 0) {
+ printf("Syllabus for course '%s':\n%s\n", courses[i].name, courses[i].syllabus);
+ return;
+ }
+ }
+ printf("Course with code '%s' not found.\n", code);
+}
+void studentLoginSystem(Student students[], int num_students) {
+ char username[20];
+ char password[20];
+ printf("Enter student username: ");
+ scanf("%s", username);
+ printf("Enter password: ");
+ scanf("%s", password);
+ for (int i = 0; i < num_students; i++) {
+ if (strcmp(students[i].name, username) == 0 && strcmp(students[i].password, password) == 0) {
+ printf("Welcome, %s (Roll Number: %d)!\n", students[i].name, students[i].id);
+ return;
+ }
+ }
+ printf("Invalid username or password.\n");
+}
+void facultyLoginSystem(FacultyMember faculty[], int num_faculty) {
+ char username[20];
+ char password[20];
+ printf("Enter faculty username: ");
+ scanf("%s", username);
+ printf("Enter password: ");
+ scanf("%s", password);
+ for (int i = 0; i < num_faculty; i++) {
+ if (strcmp(faculty[i].name, username) == 0 && strcmp(faculty[i].name, password) == 0) {
+ printf("Welcome, %s (Employee ID: %d)!\n", faculty[i].name, faculty[i].age);
+ return;
+ }
+ }
+ printf("Invalid username or password.\n");
+}
